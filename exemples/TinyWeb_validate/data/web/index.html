@@ -1,0 +1,38 @@
+<!DOCTYPE HTML >
+<html lang="fr"> 
+<head>
+	<meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> </meta>
+	<!-- ><meta http-equiv="refresh" content="15">-->
+	<title>[# APP_VERSION #]</title> 
+	<link rel="stylesheet" type="text/css" href="miniserveurweb.css"></link>
+	<script src="miniserveurweb.js" ></script>	
+	<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}</style>
+</head>
+<body onload="GetAsyncData()">
+<h1>[# HOSTNAME #]</h1>
+<div><img class="photo" src="net234.gif"  alt="net234" /></div>
+<h2 id="CLOCK" class="refresh">...</h2>
+<p id="DEBUG">debug</p>
+<p id="refreshTimeout">...</p>
+<textarea id="DEBUG2" rows="5" cols="80" >debug</textarea>
+<form method="post"  ><!-- action="test" -->
+<fieldset><legend>Formulaire</legend>
+<table> <!--  pattern="[A-Za-z0-9 ]+" -->
+<tr><td class="a">Prenom</td><td><input type="text" placeholder="Prenom" name="PRENOM" maxlength="25" value="[# PRENOM #]"   required="required"/></td></tr>
+<tr><td class="a">Début</td> <td><input type="date"  placeholder="AAAA-MM-JJ" name="DATE" maxlength="25" value="[# DATE #]" required="required"/></td></tr>
+<tr><td class="a">Durée</td><td><input type="number" list="dureList" name="DUREE" maxlength="25" value="[# DUREE #]" required="required"/></td></tr>
+<datalist id="dureList">
+<option value="1"> un Jour</option>
+<option value="7"> une Semaine</option>
+<option value="31"> un Mois</option>
+<option value="365"> une Année</option>
+</datalist>  
+</table>
+</fieldset>
+<p><button class="button" type="submit" name="submit" value="WRITE" >Enregister</button></p>
+<!-- ><p><button type="submit" name="submit" value="WRITE" formmethod="get" >Submit using GET</button></p>  -->
+</form>
+	<h2 class="refresh" id="RESULTAT">...</h2>
+	<p><a href="info.html">[# APP_VERSION #]</a></p>
+</body>
+</html>

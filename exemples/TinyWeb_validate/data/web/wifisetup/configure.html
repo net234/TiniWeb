@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+<title>Wifi Setup</title>
+<link rel="stylesheet" type="text/css" href="setup.css"/>
+<script>function c(l){document.getElementById('s').value=l.innerHTML;document.getElementById('p').focus();}</script>
+</head>
+<body><div style='text-align:center;display:inline-block;min-width:260px;'>
+<h1>[# HOSTNAME #]</h1>
+<h3>WiFiManager</h3>
+<table>
+[#REPEAT_LINE#]<tr><td class='left'><a class='ssid' href='#' onclick='c(this)'>[#SSID_NAME#]</a></td><td class='right'>[#SSID_LEVEL#]% &#x1f4f6;</td><td>[#SSID_LOCK#]</td></tr>
+</table>
+<br>
+<form method="post"  >
+<table> 
+<tr><td class="right">SSID</td><td><input id="s" type="text" placeholder="SSID" name="SSID" maxlength="25" value="" required="required"/></td></tr>
+<tr><td class="right">Password</td><td><input id="p" type="password"  placeholder="Password" name="PASS" maxlength="25" value="" required="required"/></td></tr>
+<tr><td class="right">Device</td><td><input type="text"  placeholder="Device" name="HOSTNAME" maxlength="25" value="[# HOSTNAME #]" required="required"/></td></tr>
+</table>
+<p><button class="button" type="submit" name="submit" value="SAVE" >Save</button></p>
+</form>
+<h3><a class="nodeco" href="index.html">[# APP_VERSION #]</a></h3>
+</body>
