@@ -34,10 +34,9 @@ const byte    DNS_PORT = 53;
 // ====== DO NOT REMOVE ===========================
 
 
-// instance d'objet serveur
-// Objet serveur
+// Server Instance
 //#include "user_interface.h"
-ESP8266WebServer   Serveur(SERVER_PORT);    // Serveur HTTP
+ESP8266WebServer   Server(SERVER_PORT);    // Serveur HTTP
 DNSServer          dnsServer;
 //HTTPClient       Client;        // Client HHTP (retours vers l'eedomus)
 WiFiClient       ClientWifi;    // needed by HTTPClient to use Wifi
@@ -307,12 +306,20 @@ void TinyWeb::handleEvent() {
   if (wifiStatus != _WiFiStatus) {
     _WiFiStatus = wifiStatus;
     WiFiStatusChanged = true;
-
+    MDNS.end();
+    if (_WiFiMode == twm_WIFI_STA && _WiFiStatus == tws_WIFI_OK) {
+      MDNS.begin(_hostname);
+      Serial.print(F("MS DNS ON : "));
+      Serial.println(_hostname);
+    }
     Serial.print(F("WIFI status = "));
     Serial.println(wifiStatus);
 
 
   }
+
+
+  if (_WiFiMode == twm_WIFI_STA) MDNS.update();
 }
 
 
@@ -486,30 +493,6 @@ TW_WiFiMode_t TinyWeb::getWiFiMode() {
   return (_WiFiMode);
 }
 
-void TinyWeb::setWiFiMode(TW_WiFiMode_t mode) {
-  _WiFiMode = mode;
-  WiFiModeChanged = true;
-  switch (mode) {
-    case twm_WIFI_OFF:
-      MDNS.end();
-      WiFi.mode(WIFI_OFF);
-      delay(10);
-      WiFi.forceSleepBegin();
-      delay(10);
-      break;
-    case twm_WIFI_STA:
-      _WiFiMode = twm_WIFI_STA;
-      WiFi.mode(WIFI_STA);
-      break;
-    case twm_WIFI_AP:
-      WiFi.mode(WIFI_AP);
-      break;
-      //    case TWS_WIFI_SETUP_STATION:
-      //      WiFi.mode(WIFI_AP);
-      //      break;
-
-  }
-}
 //case TWS_WIFI_OFF:
 //        MDNS.end();
 //        WiFi.mode(WIFI_OFF);
@@ -1043,7 +1026,7 @@ void TinyWeb::end() {
   delay(100);
   WiFi.forceSleepBegin();
   delay(100);
-  Serveur.close();
+  Server.close();
   delay(100);
 }
 
@@ -1081,8 +1064,10 @@ void TinyWeb::begin() {
   switch (WiFi.getMode()) {
     case WIFI_STA:
       _WiFiMode = twm_WIFI_STA;
+      break;
     case WIFI_AP:
       _WiFiMode = twm_WIFI_AP;
+      break;
     default:   // dans les autres cas on force un OFF
       _WiFiMode = twm_WIFI_OFF;
       WiFi.mode(WIFI_OFF);
@@ -1122,10 +1107,10 @@ void TinyWeb::begin() {
   // mise en place des call back web
   //Serveur.on(F("/"), HTTPCallBack_display);                        // affichage de l'etat du SONOFF
   //  Serveur.onNotFound(HTTPCallBack_HandleRequests);
-
-
-  Serveur.begin();
   Serial.setDebugOutput(debugLevel >= 3);
+  Serial.print("Serveur.begin");
+  Server.begin();
+
   Serial.print("Hostname : ");
   Serial.println(_hostname);
   delay(100);
@@ -1133,4 +1118,32 @@ void TinyWeb::begin() {
 
 
   return ;
+}
+
+
+void TinyWeb::setWiFiMode(TW_WiFiMode_t mode, const char *ssid, const char *password) {
+  _WiFiMode = mode;
+  WiFiModeChanged = true;
+  switch (mode) {
+    case twm_WIFI_OFF:
+      MDNS.end();
+      WiFi.mode(WIFI_OFF);
+      delay(10);
+      WiFi.forceSleepBegin();
+      delay(10);
+      break;
+    case twm_WIFI_STA:
+      _WiFiMode = twm_WIFI_STA;
+      WiFi.hostname(_hostname);
+      WiFi.mode(WIFI_STA);
+      if (ssid != NULL) WiFi.begin(ssid, password);
+      break;
+    case twm_WIFI_AP:
+      WiFi.mode(WIFI_AP);
+      break;
+      //    case TWS_WIFI_SETUP_STATION:
+      //      WiFi.mode(WIFI_AP);
+      //      break;
+
+  }
 }

@@ -204,9 +204,14 @@ void loop() {
               Serial.println("setWiFiMode(WiFi_STA)");
               ServeurWeb.setWiFiMode(twm_WIFI_STA);
               break;
-            case '2':
-              Serial.println("setWiFiMode(WiFi_AP)");
-              ServeurWeb.setWiFiMode(twm_WIFI_AP);
+           case '2':
+              Serial.println("setWiFiMode(WiFi_STA)");
+              ServeurWeb.setWiFiMode(twm_WIFI_STA);
+              break;
+               
+            case '3':
+              Serial.println("setWiFiMode(WiFi_AP with SSID & PASS)");
+              ServeurWeb.setWiFiMode(twm_WIFI_STA,"mon_wifi","ultrasecret");
               break;
       //      case '4':
       //        Serial.println("setmode wifi station");

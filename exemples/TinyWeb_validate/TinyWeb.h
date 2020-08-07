@@ -55,10 +55,10 @@ class TinyWeb {
     void begin();                                   // main server start as was configured
     void end();                                     // main server stop
     TW_WiFiMode_t    getWiFiMode();  // Wifi Mode expected by user
-    void             setWiFiMode(TW_WiFiMode_t const mode);
+    void             setWiFiMode(TW_WiFiMode_t const mode,const char* ssid= NULL , const char* ssidpassword = NULL);
     TW_WiFiStatus_t  getWiFiStatus();                  // Wifi Status is scanned during handleClient()
 
-    //    void connectWiFi(String ssid, String ssidpassword, bool const tryConfig = true); // setup main server wifi credential
+    //void setSTAWiFi(String ssid, String ssidpassword); // setup AP server wifi credential
     //    void configureWiFi(const bool active = false);  // active the AP mode to request wifi credential from the user
     // //   void softAPconnect(const bool active,const bool persistent = false,const char* = NULL);
     //
