@@ -34,7 +34,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println(F(APP_VERSION));
 
-  Serial.setDebugOutput(true);  // affichage du debug mode pour webserver
+  //Serial.setDebugOutput(true);  // affichage du debug mode pour webserver
 
   //  // recuperation du nom de la device
   //  LittleFS.begin();
@@ -55,7 +55,7 @@ void setup() {
 
   //  ServeurWeb.WiFiMode = WIFI_STA;  // mode par defaut
   //  ServeurWeb.setCallBack_TranslateKey(&traductionKey);
-  //  ServeurWeb.setCallBack_OnSubmit(&webSubmit);
+  //  ServeurWeb.setCallBack_OnRequest(&HttpRequest);
   //  ServeurWeb.setCallBack_OnRefreshItem(&on_RefreshItem);
   //  ServeurWeb.setCallBack_OnRepeatLine(&on_RepeatLine);
   ServeurWeb.begin();
@@ -133,44 +133,47 @@ void loop() {
   {
     char inChar = (char)Serial.read();
     switch (inChar) {
-      case 'A':
-        Serial.println("Wifi.begin()");
-        WiFi.begin();
-        break;
-      case 'B':
-        Serial.println("Wifi.mode(OFF)");
-
-        WiFi.mode(WIFI_OFF);
-
-        delay(100);
-        break;
-      case 'C':
-        Serial.println("Wifi.mode(AP)");
-        WiFi.mode(WIFI_AP);
-        break;
-      case 'D':
-        Serial.println("Wifi.mode(STA)");
-        WiFi.mode(WIFI_STA);
-        break;
+//      case 'A':
+//        Serial.println("Wifi.begin()");
+//        WiFi.begin();
+//        break;
+//      case 'B':
+//        Serial.println("Wifi.mode(OFF)");
+//
+//        WiFi.mode(WIFI_OFF);
+//
+//        delay(100);
+//        break;
+//      case 'C':
+//        Serial.println("Wifi.mode(AP)");
+//        WiFi.mode(WIFI_AP);
+//        break;
+//      case 'D':
+//        Serial.println("Wifi.mode(STA)");
+//        WiFi.mode(WIFI_STA);
+//        break;
       //      case 'E':
       //        persistentStat = !persistentStat;
       //        Serial.print("persistent ");
       //        Serial.println(persistentStat);
       //        Serial.setDebugOutput(persistentStat);
       //        break;
+     case 'G':
+        Serial.println("Hostname = ''");
+        ServeurWeb.setHostname("");
+        break;
+
       case 'H':
-        Serial.println("forceSleepWake");
-
-        WiFi.forceSleepWake();
-        delay(100);
+        Serial.println("Hostname = TINYWEB");
+        ServeurWeb.setHostname("TINYWEB");
         break;
 
-      case 'I':
-        Serial.println("forceSleepBegin");
-
-        WiFi.forceSleepBegin();
-        delay(100);
-        break;
+//      case 'I':
+//        Serial.println("forceSleepBegin");
+//
+//        WiFi.forceSleepBegin();
+//        delay(100);
+//        break;
 
 
 
@@ -231,9 +234,9 @@ void loop() {
         ESP.reset();
         while (1) {};
         break;
-      case 'S':
-        WiFi.printDiag(Serial);
-        break;
+//      case 'S':
+//        WiFi.printDiag(Serial);
+//        break;
       case 'Z':
         Serial.print("long delay ");
         for (int N = 1; N <= 30; N++) {

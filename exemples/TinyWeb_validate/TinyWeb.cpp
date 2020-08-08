@@ -30,14 +30,14 @@ const byte    DNS_PORT = 53;
 //#include <ESP8266WiFi.h>        // base d'acces au WIFI (included in .h)
 #include <ESP8266WebServer.h>   // web server to answer WEB request and EEDOMUS BOX request
 #include <ESP8266mDNS.h>      // not used here we stay with IP on this side (Wifimanageg need id on his side)
-#include <DNSServer.h>        // only used by capture portal to redirect web request to main page
+//#include <DNSServer.h>        // only used by capture portal to redirect web request to main page
 // ====== DO NOT REMOVE ===========================
 
 
 // Server Instance
 //#include "user_interface.h"
 ESP8266WebServer   Server(SERVER_PORT);    // Serveur HTTP
-DNSServer          dnsServer;
+//DNSServer          dnsServer;
 //HTTPClient       Client;        // Client HHTP (retours vers l'eedomus)
 WiFiClient       ClientWifi;    // needed by HTTPClient to use Wifi
 
@@ -48,35 +48,35 @@ WiFiClient       ClientWifi;    // needed by HTTPClient to use Wifi
 //pointer du traducteur de Key
 void (*translateKeyPtr)(String &key) = NULL;
 
-//void translateKey(String &key) {
-//  if ( key.equals(F("CHIP_ID")) ) {
-//    key = ESP.getChipId();
-//  } else if ( key.equals(F("FLASH_CHIP_ID")) ) {
-//    key = ESP.getFlashChipId();
-//  } else if ( key.equals(F("IDE_FLASH_SIZE")) ) {
-//    key = ESP.getFlashChipSize();
-//  } else if ( key.equals(F("REAL_FLASH_SIZE")) ) {
-//    key = ESP.getFlashChipRealSize();
-//  } else if ( key.equals(F("SOFTAP_IP")) ) {
-//    key = WiFi.softAPIP().toString();
-//  } else if ( key.equals(F("SOFTAP_MAC")) ) {
-//    key = WiFi.softAPmacAddress();
-//  } else if ( key.equals(F("STATION_IP")) ) {
-//    key = miniServerPtr->lastLocalIp;
-//  } else if ( key.equals(F("HOSTNAME")) ) {
-//    key = miniServerPtr->hostname;
-//  } else if ( key.equals(F("STATION_MAC")) ) {
-//    key = WiFi.macAddress();
-//  } else if (translateKeyPtr) {
-//    (*translateKeyPtr)(key);
-//  }
-//}
+void translateKey(String &key) {
+  if ( key.equals(F("CHIP_ID")) ) {
+    key = ESP.getChipId();
+  } else if ( key.equals(F("FLASH_CHIP_ID")) ) {
+    key = ESP.getFlashChipId();
+  } else if ( key.equals(F("IDE_FLASH_SIZE")) ) {
+    key = ESP.getFlashChipSize();
+  } else if ( key.equals(F("REAL_FLASH_SIZE")) ) {
+    key = ESP.getFlashChipRealSize();
+  } else if ( key.equals(F("SOFTAP_IP")) ) {
+    key = WiFi.softAPIP().toString();
+  } else if ( key.equals(F("SOFTAP_MAC")) ) {
+    key = WiFi.softAPmacAddress();
+    //  } else if ( key.equals(F("STATION_IP")) ) {
+    //    key = tinyWebPtr->lastLocalIp;
+  } else if ( key.equals(F("HOSTNAME")) ) {
+    key = tinyWebPtr->_hostname;
+  } else if ( key.equals(F("STATION_MAC")) ) {
+    key = WiFi.macAddress();
+  } else if (translateKeyPtr) {
+    (*translateKeyPtr)(key);
+  }
+}
 
-//pointer du gestionaire de submit
-void (*onSubmitPtr)(const String &key) = NULL;
+//pointer du gestionaire de request
+void (*onRequestPtr)(const String &filename) = NULL;
 
-void onSubmit(String &key) {
-  if (onSubmitPtr) (*onSubmitPtr)(key);
+void onRequest(String &filename) {
+  if (onRequestPtr) (*onRequestPtr)(filename);
 }
 
 //pointeur du gestionanire de refresh
@@ -177,34 +177,34 @@ bool onRepeatLine(const int num) {
 
 // ============   tools to handle captive portal  ============
 
-bool softAPRequested = false;
-bool softAP = false;            //Captive portal active
-bool captiveDNS = false;               //Captive portal DNS active
-bool rootWifiSetup = false;             //Specific for CaptivePortal WifiSetup hold in a sub repertory
-unsigned long timerCaptivePortal;      //Used to timeout Captive portal
-unsigned long timerCaptiveDNS;         //Used to reactive captive portal DNS
-unsigned long timerWiFiStop = 0;       //Force a WiFi stop in 2,5 sec
+//bool softAPRequested = false;
+//bool softAP = false;            //Captive portal active
+//bool captiveDNS = false;               //Captive portal DNS active
+//bool rootWifiSetup = false;             //Specific for CaptivePortal WifiSetup hold in a sub repertory
+//unsigned long timerCaptivePortal;      //Used to timeout Captive portal
+//unsigned long timerCaptiveDNS;         //Used to reactive captive portal DNS
+//unsigned long timerWiFiStop = 0;       //Force a WiFi stop in 2,5 sec
 
 
 
-// CaptiveDNS is active until a request to setupServer is done
-void   captiveDNSStart() {
-  Serial.println("Captive DNS ON");
-  /* Setup the DNS server redirecting all the domains to the apIP */
-  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-  dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
-  captiveDNS = true;
-  //timerCaptivePortal = millis();
-}
+//// CaptiveDNS is active until a request to setupServer is done
+//void   captiveDNSStart() {
+//  Serial.println("Captive DNS ON");
+//  /* Setup the DNS server redirecting all the domains to the apIP */
+//  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+//  dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
+//  captiveDNS = true;
+//  //timerCaptivePortal = millis();
+//}
 
 
-void captiveDNSStop() {
-  Serial.println("Captive DNS OFF");
-  dnsServer.stop();
-  captiveDNS = false;
-  // rearme le timerCaptiveDNS
-  timerCaptiveDNS = millis();
-}
+//void captiveDNSStop() {
+//  Serial.println("Captive DNS OFF");
+//  dnsServer.stop();
+//  captiveDNS = false;
+//  // rearme le timerCaptiveDNS
+//  timerCaptiveDNS = millis();
+//}
 
 //void handleCaptivePortal() {
 //#define DELAY_NOVALIDPAGE 1U * 60 * 1000
@@ -222,12 +222,15 @@ void captiveDNSStop() {
 //  if (captiveDNS) dnsServer.processNextRequest();
 //}
 
-bool    newConfigTry = false;
-bool    newConfigValide = false;
-String  newConfigSSID;
-String  newConfigPASS;
+//bool    newConfigTry = false;
+//bool    newConfigValide = false;
+//String  newConfigSSID;
+//String  newConfigPASS;
+
+// Out of instance variables
 String  redirectUri;
 
+//
 // ============   tools to handle captive portal  (END) ============
 
 // ============   tools to handle wifi mode =========
@@ -318,7 +321,7 @@ void TinyWeb::handleEvent() {
 
   }
 
-
+  Server.handleClient();
   if (_WiFiMode == twm_WIFI_STA) MDNS.update();
 }
 
@@ -686,315 +689,313 @@ TW_WiFiMode_t TinyWeb::getWiFiMode() {
 //}
 //
 //
-//// Pages WEB
+//// Dealing with WEB HTTP request
 ////#define LOCHex2Char(X) (X + (X <= 9 ? '0' : ('A' - 10)))
 //char LOCHex2Char( byte aByte) {
 //  return aByte + (aByte <= 9 ? '0' : 'A' -  10);
 //}
 //
 //
-//// looking for requested file into littleFS
-//void HTTPCallBack_HandleRequests() {
-//
-//  Serial.print(F("WEB receved a "));
-//  Serial.print( String((Serveur.method() == HTTP_GET) ? "GET " : "POST " ));
-//  Serial.print(Serveur.uri());
-//  Serial.print(F(" from "));
-//  Serial.print(Serveur.client().remoteIP());
-//  Serial.println();
-//  // interception en mode captive
-//  Serial.print(F("hostHeader : "));
-//  Serial.print(Serveur.hostHeader());
-//  Serial.println();
-//
-//  // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
-//  if (softAP && !(Serveur.hostHeader().startsWith("169.254.169.254")) && (Serveur.uri().endsWith(".html") || Serveur.uri().endsWith("redirect") || Serveur.uri().endsWith(".txt")) ) {
-//    Serial.println(F("Request redirected to captive portal"));
-//    String aStr = F("http://");
-//    aStr += Serveur.client().localIP().toString();
-//    //   aStr += F("/APSetup/WifiManagement.html");
-//    Serveur.sendHeader("Location", aStr, true);
-//    //    Serveur.sendHeader("Location", String("http://") + Serveur.client().localIP().toString() + "/APSetup/WifiManagement.html", true);
-//    Serveur.send ( 302, "text/plain", "");
-//    Serveur.client().stop();
-//    return;
-//  }
-//
-//  // specific for firefox to hide captive mode
-//  if (softAP && Serveur.uri().endsWith("generate_204") ) {
-//    Serial.println(F("Generate204"));
-//    Serveur.setContentLength(0);
-//    Serveur.send ( 204 );
-//    Serveur.client().stop();
-//    return;
-//  }
-//
-//  // rearm timeout for captive portal
-//  // to hide captive mode stop DNS captive if a request is good (hostheader=localip)
-//  if (softAP) {
-//    timerCaptivePortal = millis();
-//    if (captiveDNS) captiveDNSStop();
-//  }
-//
-//
-//  // standard query are rooted to web folder
-//  String fileName = "/web";
-//  // captive query are rooted to web/wifisetup folder
-//  if (rootWifiSetup) fileName += "/wifisetup";
-//  fileName += Serveur.uri();
-//
-//  if (fileName.endsWith(F("/")) ) fileName += "index.html";   //default page ;
-//  String fileMIME;
-//
-//  // find MIMETYPE for standard files
-//  enum fileType_t { NONE, CSS, ICO, PNG, JPG, GIF, JS, HTML } fileType = NONE;
-//  if ( fileName.endsWith(F(".css")) ) {
-//    fileType = CSS;
-//    fileMIME = F("text/css");
-//  } else if ( fileName.endsWith(F(".ico")) ) {
-//    fileType = ICO;
-//    fileMIME = F("image/x-icon");
-//  } else if ( fileName.endsWith(F(".png")) ) {
-//    fileType = PNG;
-//    fileMIME = F("image/png");
-//  } else if ( fileName.endsWith(F(".jpg")) ) {
-//    fileType = JPG;
-//    fileMIME = F("image/jpg");
-//  } else if ( fileName.endsWith(F(".gif")) ) {
-//    fileType = GIF;
-//    fileMIME = F("image/gif");
-//  } else if ( fileName.endsWith(F(".js")) ) {
-//    fileType = JS;
-//    fileMIME = F("application/javascript");
-//  } else if ( fileName.endsWith(F(".html")) ) {
-//    fileType = HTML;
-//    fileMIME = F("text/html");
-//  }
-//  // ================ SPECIFIC QUERY REFRESH  START =======================
-//
-//  // query 'refresh' sended by 'miniServerWeb.js' to update class 'refresh' web items
-//  // if first arg is named 'refresh'  all itmes are translated with  onRefreshItem  call back
-//  // then they are sended back to client in a urlencoded string
-//  if (Serveur.args() > 0 && Serveur.argName(0) == "refresh") {
-//    // debug track
-//    Serial.print(F("WEB: Query refresh ("));
-//    if (Serveur.method() == HTTP_POST) {
-//      Serial.print(Serveur.arg(Serveur.args() - 1).length());
-//      Serial.print(F(") "));
-//      Serial.println(Serveur.arg(Serveur.args() - 1)); // try to get 'plain'
-//    } else {
-//      Serial.print(Serveur.arg(0).length());
-//      Serial.print(F(") "));
-//      Serial.println(Serveur.arg(0)); // try to get 'plain'
-//    }
-//
-//    // traitement des chaines par le Sketch
-//    String answer;
-//    answer.reserve(1000);   // should be max answer
-//    String aKey;
-//    aKey.reserve(500);      // should be max for 1 value
-//    String aKeyName;
-//    aKeyName.reserve(50);
-//    for (uint8_t N = 1; N < Serveur.args(); N++) {
-//      //     Serial.print(F("WEB: refresh "));
-//      //     Serial.print(Serveur.argName(N));
-//      //     Serial.print(F("="));
-//      //      Serial.println(Serveur.arg(N));
-//      aKeyName = Serveur.argName(N);
-//      aKey = Serveur.arg(N);
-//      if ( !aKeyName.equals("refresh") && !aKeyName.equals("plain") && onRefreshItem(aKeyName, aKey) ) {
-//        if (answer.length() > 0) answer += '&';
-//        answer +=  aKeyName;
-//        answer +=  '=';
-//        if ( aKey.length() > 500) {
-//          aKey.remove(490);
-//          aKey += "...";
-//        }
-//        // uri encode maison :)
-//        for (int N = 0; N < aKey.length(); N++) {
-//          char aChar = aKey[N];
-//          if ( isAlphaNumeric(aChar) ) {
-//            answer +=  aChar;
-//          } else {
-//            answer +=  '%';
-//            answer += LOCHex2Char( aChar >> 4 );
-//            answer += LOCHex2Char( aChar & 0xF);
-//          } // if alpha
-//        } // for
-//      } // valide keyname
-//    } // for each arg
-//
-//    Serial.print(F("WEB: refresh answer ("));
-//    Serial.print(answer.length());
-//    Serial.print(F(") "));
-//    Serial.println(answer);
-//
-//    Serveur.sendHeader("Cache-Control", "no-cache");
-//    Serveur.setContentLength(answer.length());
-//    Serveur.send(200, fileMIME.c_str(), answer);
-//    //    Serveur.client().stop();
-//    //    Serial.print(answer.length());
-//    //    Serial.println(F(" car."));
-//
-//    return;
-//
-//  }
-//  // ================ QUERY REFRESH  END =======================
-//
-//
-//
-//  // if any arg is named 'submit' ==> send submit to call back onSubmit
-//  redirectUri = "";
-//  for (uint8_t i = 0; i < Serveur.args(); i++) {
-//    if ( Serveur.argName(i).equals(F("submit")) ) {
-//
-//      Serial.print(F("WEB: Submit "));
-//      Serial.println(Serveur.arg(i));
-//      String value = Serveur.arg(i);
-//      onSubmit(value);   //appel du callback
-//    }
-//  }
-//  // if call back onSubmit want we redirect
-//  if (redirectUri.length() > 0) {
-//    Serial.print(F("WEB redirect "));
-//    Serial.println(redirectUri);
-//    //    String aStr = F("http://");
-//    //    aStr += Serveur.client().localIP().toString();
-//    String aStr = redirectUri;
-//    redirectUri = "";
-//    Serveur.sendHeader("Location", aStr, true);
-//    Serveur.send ( 302, "text/plain", "");
-//    Serveur.client().stop();
-//    return;
-//  }
-//
-//  File aFile;
-//  if (fileType != NONE) {
-//    aFile = LittleFS.open(fileName, "r");
-//  }
-//  bool doChunk = false;
-//  if (aFile) {
-//    if (fileType == HTML) {
-//      Serveur.sendHeader("Cache-Control", "no-cache");
-//      Serveur.setContentLength(CONTENT_LENGTH_UNKNOWN);
-//      doChunk = true;
-//    } else {
-//      Serveur.sendHeader("Cache-Control", "max-age=10800, public");
-//      Serveur.setContentLength(aFile.size()); //CONTENT_LENGTH_UNKNOWN
-//    }
-//    Serveur.send(200, fileMIME.c_str());
-//    aFile.setTimeout(0);
-//    static    char aBuffer[1025];               // static dont overload heap
-//    static    char repeatBuffer[1025];          // static dont overload heap
-//    int  repeatNumber;
-//    bool repeatActive = false;
-//    // tant que tout n'est pas lut
-//    while (aFile.available()) {
-//
-//      int size;
-//      if (!doChunk) {
-//        size = aFile.readBytes( aBuffer, 1024 );
-//      } else {
-//        if (!repeatActive) {
-//          size = aFile.readBytesUntil( '\n', aBuffer, 1000 );
-//          if (size < 1000) aBuffer[size++] = '\n'; //!!! on exactly 1000 bytes lines the '\n' will be lost :)
-//          aBuffer[size] = 0x00; // make aBuffer a Cstring
-//          // Gestion du [# REPEAT #]
-//          // si une ligne commence par [#repeat] elle sera repeté et tant que OnRepat Call bask retourne true
-//          if (strncmp( "[#REPEAT_LINE#]", aBuffer, 15) == 0) {
-//            Serial.println(F("Repeat line detected"));
-//            // copie de la chaine dans le buffer de repeat
-//            strcpy(repeatBuffer, aBuffer + 15);
-//            repeatActive = true;
-//            repeatNumber = 0;
-//          }
-//        }
-//        if (repeatActive) {
-//          aBuffer[0] = 0x00;
-//          repeatActive = onRepeatLine(repeatNumber++);
-//          if ( repeatActive ) {
-//            strcpy(aBuffer, repeatBuffer);
-//          }
-//          size = strlen(aBuffer);
-//        }
-//
-//        char* currentPtr = aBuffer;
-//        // decoupage de la ligne pour gerer les "[# xxxxx #]"
-//
-//        while ( currentPtr = strstr(currentPtr, "[#") ) {  // il y a au moins un start
-//          char* startPtr = currentPtr + 2;
-//          char* stopPtr = strstr( startPtr + 1, "#]" ); // au moins un char entre [# et #]
-//          int len = stopPtr - startPtr;
-//          if (  !stopPtr || len <= 0 || len >= 40 ) { // pas de stop ou longeur incorrect
-//            break;
-//          }
-//
-//          // recuperation du mot clef
-//          char aKey[41];
-//          strncpy(aKey, startPtr, len);
-//          aKey[len] = 0x00;   // aKey is Cstring
-//          //   Serial.print("Key=");
-//          //   Serial.println(aKey);
-//
-//          String aStr;
-//          aStr.reserve(100);
-//          aStr = aKey;
-//          aStr.trim();
-//          translateKey(aStr);
-//
-//          // Copie de la suite de la chaine ailleur
-//          static  char bBuffer[500];
-//          strncpy(bBuffer, stopPtr + 2, 500);
-//
-//          // Ajout de la chaine de remplacement
-//          strncpy(currentPtr, aStr.c_str(), 100);
-//          currentPtr += aStr.length();
-//          // Ajoute la suite
-//          strncpy(currentPtr, bBuffer, 500);
-//          size = strlen(aBuffer);
-//
-//
-//        }// while
-//      } // else do chunk
-//
-//      Serial.print('.');
-//      if (size) Serveur.sendContent_P(aBuffer, size);
-//    }  // if avail
-//    if (doChunk) Serveur.chunkedResponseFinalize();
-//    Serial.println("<");
-//    Serveur.client().stop();
-//    aFile.close();
-//    return;
-//  }
-//  //  }
-//  Serial.println("error 404");
-//  String message = F("File Not Found\n");
-//  message += "URI: ";
-//  message += Serveur.uri();
-//  message += F("\nMethod: ");
-//  message += (Serveur.method() == HTTP_GET) ? "GET" : "POST";
-//  message += F("\nArguments: ");
-//  message += Serveur.args(); // last is plain = all arg
-//  message += F("\n<br>");
-//  for (uint8_t i = 0; i < Serveur.args(); i++) {
-//    message += " " + Serveur.argName(i) + ": " + Serveur.arg(i) + "\n<br>";
-//  }
-//  Serial.println(message);
-//  message += "<H2><a href=\"/\">go home</a></H2><br>";
-//  Serveur.send(404, "text/html", message);
-//  Serveur.client().stop();
-//}
+//// looking for requested file into local web pages
+void HTTP_HandleRequests() {
+
+  Serial.print(F("WEB receved a "));
+  Serial.print( String((Server.method() == HTTP_GET) ? "GET " : "POST " ));
+  Serial.print(Server.uri());
+  Serial.print(F(" from "));
+  Serial.print(Server.client().remoteIP());
+  Serial.println();
+  //  // interception en mode captive
+  //  Serial.print(F("hostHeader : "));
+  //  Serial.print(Serveur.hostHeader());
+  //  Serial.println();
+  //
+  //  // in captive mode all requests to html or txt are re routed to "http://localip()" with a 302 reply
+  //  if (softAP && !(Serveur.hostHeader().startsWith("169.254.169.254")) && (Serveur.uri().endsWith(".html") || Serveur.uri().endsWith("redirect") || Serveur.uri().endsWith(".txt")) ) {
+  //    Serial.println(F("Request redirected to captive portal"));
+  //    String aStr = F("http://");
+  //    aStr += Serveur.client().localIP().toString();
+  //    //   aStr += F("/APSetup/WifiManagement.html");
+  //    Serveur.sendHeader("Location", aStr, true);
+  //    //    Serveur.sendHeader("Location", String("http://") + Serveur.client().localIP().toString() + "/APSetup/WifiManagement.html", true);
+  //    Serveur.send ( 302, "text/plain", "");
+  //    Serveur.client().stop();
+  //    return;
+  //  }
+  //
+  //  // specific for firefox to hide captive mode
+  //  if (softAP && Serveur.uri().endsWith("generate_204") ) {
+  //    Serial.println(F("Generate204"));
+  //    Serveur.setContentLength(0);
+  //    Serveur.send ( 204 );
+  //    Serveur.client().stop();
+  //    return;
+  //  }
+  //
+  //  // rearm timeout for captive portal
+  //  // to hide captive mode stop DNS captive if a request is good (hostheader=localip)
+  //  if (softAP) {
+  //    timerCaptivePortal = millis();
+  //    if (captiveDNS) captiveDNSStop();
+  //  }
+  //
+  //
+  // standard query are rooted to web folder
+  String fileName = tinyWebPtr->webFolder;
+  //  // captive query are rooted to web/wifisetup folder
+  //  if (rootWifiSetup) fileName += "/wifisetup";
+  fileName += Server.uri();
+  // todo   protection against ../
+
+  if (fileName.endsWith(F("/")) ) fileName += "index.html";   //default page ;
+  String fileMIME;
+
+  // find MIMETYPE for standard files
+  enum fileType_t { NONE, CSS, ICO, PNG, JPG, GIF, JS, HTML } fileType = NONE;
+  if ( fileName.endsWith(F(".css")) ) {
+    fileType = CSS;
+    fileMIME = F("text/css");
+  } else if ( fileName.endsWith(F(".ico")) ) {
+    fileType = ICO;
+    fileMIME = F("image/x-icon");
+  } else if ( fileName.endsWith(F(".png")) ) {
+    fileType = PNG;
+    fileMIME = F("image/png");
+  } else if ( fileName.endsWith(F(".jpg")) ) {
+    fileType = JPG;
+    fileMIME = F("image/jpg");
+  } else if ( fileName.endsWith(F(".gif")) ) {
+    fileType = GIF;
+    fileMIME = F("image/gif");
+  } else if ( fileName.endsWith(F(".js")) ) {
+    fileType = JS;
+    fileMIME = F("application/javascript");
+  } else if ( fileName.endsWith(F(".html")) ) {
+    fileType = HTML;
+    fileMIME = F("text/html");
+  }
+
+  // On request callback is call to inform sketch of any http request
+  // if redirectTo(aUri) is set then an error 302 will be sent to redirect request
+
+  redirectUri = "";
+  onRequest(fileName);
+  // if call back onRequest want a redirect
+  if (redirectUri.length() > 0) {
+    Serial.print(F("WEB redirect "));
+    Serial.println(redirectUri);
+    Server.sendHeader("Location", redirectUri, true);
+    Server.send ( 302, "text/plain", "");
+    Server.client().stop();
+    return;
+  }
+
+
+
+
+  //  // ================ SPECIFIC QUERY REFRESH  START =======================
+  //
+  //  // query 'refresh' sended by 'miniServerWeb.js' to update class 'refresh' web items
+  //  // if first arg is named 'refresh'  all itmes are translated with  onRefreshItem  call back
+  //  // then they are sended back to client in a urlencoded string
+  //  if (Serveur.args() > 0 && Serveur.argName(0) == "refresh") {
+  //    // debug track
+  //    Serial.print(F("WEB: Query refresh ("));
+  //    if (Serveur.method() == HTTP_POST) {
+  //      Serial.print(Serveur.arg(Serveur.args() - 1).length());
+  //      Serial.print(F(") "));
+  //      Serial.println(Serveur.arg(Serveur.args() - 1)); // try to get 'plain'
+  //    } else {
+  //      Serial.print(Serveur.arg(0).length());
+  //      Serial.print(F(") "));
+  //      Serial.println(Serveur.arg(0)); // try to get 'plain'
+  //    }
+  //
+  //    // traitement des chaines par le Sketch
+  //    String answer;
+  //    answer.reserve(1000);   // should be max answer
+  //    String aKey;
+  //    aKey.reserve(500);      // should be max for 1 value
+  //    String aKeyName;
+  //    aKeyName.reserve(50);
+  //    for (uint8_t N = 1; N < Serveur.args(); N++) {
+  //      //     Serial.print(F("WEB: refresh "));
+  //      //     Serial.print(Serveur.argName(N));
+  //      //     Serial.print(F("="));
+  //      //      Serial.println(Serveur.arg(N));
+  //      aKeyName = Serveur.argName(N);
+  //      aKey = Serveur.arg(N);
+  //      if ( !aKeyName.equals("refresh") && !aKeyName.equals("plain") && onRefreshItem(aKeyName, aKey) ) {
+  //        if (answer.length() > 0) answer += '&';
+  //        answer +=  aKeyName;
+  //        answer +=  '=';
+  //        if ( aKey.length() > 500) {
+  //          aKey.remove(490);
+  //          aKey += "...";
+  //        }
+  //        // uri encode maison :)
+  //        for (int N = 0; N < aKey.length(); N++) {
+  //          char aChar = aKey[N];
+  //          if ( isAlphaNumeric(aChar) ) {
+  //            answer +=  aChar;
+  //          } else {
+  //            answer +=  '%';
+  //            answer += LOCHex2Char( aChar >> 4 );
+  //            answer += LOCHex2Char( aChar & 0xF);
+  //          } // if alpha
+  //        } // for
+  //      } // valide keyname
+  //    } // for each arg
+  //
+  //    Serial.print(F("WEB: refresh answer ("));
+  //    Serial.print(answer.length());
+  //    Serial.print(F(") "));
+  //    Serial.println(answer);
+  //
+  //    Serveur.sendHeader("Cache-Control", "no-cache");
+  //    Serveur.setContentLength(answer.length());
+  //    Serveur.send(200, fileMIME.c_str(), answer);
+  //    //    Serveur.client().stop();
+  //    //    Serial.print(answer.length());
+  //    //    Serial.println(F(" car."));
+  //
+  //    return;
+  //
+  //  }
+  //  // ================ QUERY REFRESH  END =======================
+  //
+  //
+  //  ================= Deal with local web pages ============
+  File aFile;
+  if (fileType != NONE) aFile = LittleFS.open(fileName, "r");
+  bool doChunk = false;
+  if (aFile) {
+    if (fileType == HTML) {
+      Server.sendHeader("Cache-Control", "no-cache");
+      Server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+      doChunk = true;
+    } else {
+      Server.sendHeader("Cache-Control", "max-age=10800, public");
+      Server.setContentLength(aFile.size()); //CONTENT_LENGTH_UNKNOWN
+    }
+    Server.send(200, fileMIME.c_str());
+    aFile.setTimeout(0);   // to avoid delay at EOF
+    static    char aBuffer[1025];               // static dont overload heap
+    static    char repeatBuffer[1025];          // static dont overload heap
+    //todo avoid repeatBuffer if repeat not used
+    int  repeatNumber;
+    bool repeatActive = false;
+    // repeat until end of file
+    while (aFile.available()) {
+      int size;
+      if (!doChunk) {
+
+        // standard file (not HTML) are with 1024 byte buffer
+        size = aFile.readBytes( aBuffer, 1024 );
+      } else {
+
+        // chunked file are read line by line with spefic keyword detection
+        if (!repeatActive) {
+
+          // if not in repeat line mode   just read one line
+          size = aFile.readBytesUntil( '\n', aBuffer, 1000 );
+          if (size < 1000) aBuffer[size++] = '\n'; //!!! on exactly 1000 bytes lines the '\n' will be lost :)
+          aBuffer[size] = 0x00; // make aBuffer a Cstring
+          // Gestion du [# REPEAT_LINE #]
+          // if a line start with  [#REPEAT_LINE#] it will be sended while OnRepat Call bask retourne true
+          // this help to display records of database
+          if (strncmp( "[#REPEAT_LINE#]", aBuffer, 15) == 0) {
+            //            Serial.println(F("Repeat line detected"));
+            // Save the line in  repeat buffer
+            strcpy(repeatBuffer, aBuffer + 15);
+            repeatActive = true;
+            repeatNumber = 0;
+          }
+        }
+        if (repeatActive) {
+          aBuffer[0] = 0x00;
+          // ask the sketch if we should repeat
+          repeatActive = onRepeatLine(repeatNumber++);
+          if ( repeatActive ) strcpy(aBuffer, repeatBuffer);
+
+          size = strlen(aBuffer);
+        }
+
+        char* currentPtr = aBuffer;
+        // cut line in par to deal with kerwords "[# xxxxx #]"
+        while ( currentPtr = strstr(currentPtr, "[#") ) {  // start detected
+          char* startPtr = currentPtr + 2;
+          char* stopPtr = strstr( startPtr + 1, "#]" ); // at least 1 letter keyword [#  #]
+          int len = stopPtr - startPtr;
+          if (  !stopPtr || len <= 0 || len >= 40 ) { // abort if no stop or lenth of keyword over 40
+            break;
+          }
+          // grab keyword
+          char aKey[41];
+          strncpy(aKey, startPtr, len);
+          aKey[len] = 0x00;   // aKey is Cstring
+          //   Serial.print("Key=");
+          //   Serial.println(aKey);
+          String aStr;
+          aStr.reserve(100);
+          aStr = aKey;
+          aStr.trim();
+          // callback to deal with keywords
+          translateKey(aStr);
+
+          // Copie de la suite de la chaine ailleur
+          static  char bBuffer[500];   //  todo   deal correctly with over 500 char lines
+          strncpy(bBuffer, stopPtr + 2, 500);
+
+          // Ajout de la chaine de remplacement
+          strncpy(currentPtr, aStr.c_str(), 100);
+          currentPtr += aStr.length();
+          // Ajoute la suite
+          strncpy(currentPtr, bBuffer, 500);
+          size = strlen(aBuffer);
+
+          //
+        }// while
+      } // else do chunk
+      //
+      //      Serial.print('.');
+      if (size) Server.sendContent_P(aBuffer, size);
+    }  // if avail
+    if (doChunk) Server.chunkedResponseFinalize();
+    //    Serial.println("<");
+    Server.client().stop();
+    aFile.close();
+    return;
+  }
+  //  //  }
+  Serial.println("error 404");
+  String message = F("File Not Found\n");
+  message += "URI: ";
+  message += Server.uri();
+  message += F("\nMethod: ");
+  message += (Server.method() == HTTP_GET) ? "GET" : "POST";
+  message += F("\nArguments: ");
+  message += Server.args(); // last is plain = all arg
+  message += F("\n<br>");
+  for (uint8_t i = 0; i < Server.args(); i++) {
+    message += " " + Server.argName(i) + ": " + Server.arg(i) + "\n<br>";
+  }
+  Serial.println(message);
+  message += "<H2><a href=\"/\">go home</a></H2><br>";
+  Server.send(404, "text/html", message);
+  Server.client().stop();
+  //}
+}
 
 
 
 
 
-
 //
 //
-//void MiniServeurWeb::setCallBack_TranslateKey(void (*translatekey)(String & key))  {
-//  translateKeyPtr =  translatekey;
-//}
+void TinyWeb::setCallBack_TranslateKey(void (*translatekey)(String & key))  {
+  translateKeyPtr =  translatekey;
+}
 //
 //void MiniServeurWeb::setCallBack_OnSubmit(void (*onsubmit)(const String & key))  {
 //  onSubmitPtr =  onsubmit;
@@ -1005,9 +1006,9 @@ TW_WiFiMode_t TinyWeb::getWiFiMode() {
 //}
 //
 //
-//void MiniServeurWeb::setCallBack_OnRepeatLine(bool (*onrepeatline)(const int num)) {     // call back pour gerer les Repeat
-//  onRepeatLinePtr = onrepeatline;
-//}
+void TinyWeb::setCallBack_OnRepeatLine(bool (*onrepeatline)(const int num)) {     // call back pour gerer les Repeat
+  onRepeatLinePtr = onrepeatline;
+}
 //
 //
 //String MiniServeurWeb::currentUri() {
@@ -1015,19 +1016,19 @@ TW_WiFiMode_t TinyWeb::getWiFiMode() {
 //}
 //
 //
-//void MiniServeurWeb::redirectTo(String const uri) {
-//  redirectUri = uri;
-//}
+void TinyWeb::redirectTo(String const uri) {
+  redirectUri = uri;
+}
 
 
 void TinyWeb::end() {
   WiFi.mode(WIFI_OFF);
-  softAP = false;
-  delay(100);
+  //  softAP = false;
+  delay(10);
   WiFi.forceSleepBegin();
-  delay(100);
+  delay(10);
   Server.close();
-  delay(100);
+  delay(10);
 }
 
 
@@ -1037,7 +1038,22 @@ void TinyWeb::end() {
 // return false si le WiFi interne de l'ESP n'est pas en mode AP
 // la config se fera par l'utilisateur via
 
+// Just check if hostname is valide,
+void TinyWeb::setHostname(const String hostname) {
+  _hostname = hostname;
+  // Check a valid hostname
+  // configation du nom du reseau AP : LITTLEWEB_XXYY  avec les 2 dernier chifre hexa de la mac adresse
+  if (_hostname.length() > 30) _hostname.remove(30);   // chop at 30char
+  _hostname.trim();
+  if (_hostname.length() < 4 ) _hostname = F(MWEB_DEFAULT_SSID "*");
+  if (_hostname.endsWith(F("*"))) {
+    _hostname.remove(_hostname.length() - 1);
+    _hostname += WiFi.macAddress().substring(12, 14);
+    _hostname += WiFi.macAddress().substring(15, 17);
+  }
+  _hostname.replace(' ', '_');
 
+}
 void TinyWeb::begin() {
 
   // recuperation des info en flash WIFI
@@ -1078,18 +1094,7 @@ void TinyWeb::begin() {
   WiFiModeChanged = true;
 
   // le hostname est SSID du mode AP il servira aussi pour le nom DNS en mode station
-  _hostname = WiFi.softAPSSID();
-  // Check a valid hostname
-  // configation du nom du reseau AP : LITTLEWEB_XXYY  avec les 2 dernier chifre hexa de la mac adresse
-  if (_hostname.length() > 30) _hostname.remove(30);   // chop at 30char
-  _hostname.trim();
-  if (_hostname.length() < 4 ) _hostname = F(MWEB_DEFAULT_SSID "*");
-  if (_hostname.endsWith(F("*"))) {
-    _hostname.remove(_hostname.length() - 1);
-    _hostname += WiFi.macAddress().substring(12, 14);
-    _hostname += WiFi.macAddress().substring(15, 17);
-  }
-  _hostname.replace(' ', '_');
+  setHostname(WiFi.softAPSSID());
   Serial.print("Hostname:");
   Serial.println(_hostname);
   // FS
@@ -1106,7 +1111,7 @@ void TinyWeb::begin() {
   //  delay(1000);
   // mise en place des call back web
   //Serveur.on(F("/"), HTTPCallBack_display);                        // affichage de l'etat du SONOFF
-  //  Serveur.onNotFound(HTTPCallBack_HandleRequests);
+  Server.onNotFound(HTTP_HandleRequests);
   Serial.setDebugOutput(debugLevel >= 3);
   Serial.print("Serveur.begin");
   Server.begin();
@@ -1134,6 +1139,7 @@ void TinyWeb::setWiFiMode(TW_WiFiMode_t mode, const char *ssid, const char *pass
       break;
     case twm_WIFI_STA:
       _WiFiMode = twm_WIFI_STA;
+      WiFi.softAP(_hostname);  // memorise hostname in flash
       WiFi.hostname(_hostname);
       WiFi.mode(WIFI_STA);
       if (ssid != NULL) WiFi.begin(ssid, password);

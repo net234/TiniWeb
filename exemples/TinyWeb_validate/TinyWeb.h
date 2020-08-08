@@ -27,7 +27,7 @@
 #pragma once
 #include <arduino.h>
 //#include "ESP8266.h"
-#include <ESP8266WiFi.h>
+//#include <ESP8266WiFi.h>
 // littleFS
 #include "LittleFS.h"  //Include File System Headers 
 
@@ -44,7 +44,7 @@
 
 
 
-enum TW_WiFiMode_t   { twm_WIFI_OFF = 0, twm_WIFI_STA, twm_WIFI_AP,twm_WIFI_APSETUP };
+enum TW_WiFiMode_t   { twm_WIFI_OFF = 0, twm_WIFI_STA, twm_WIFI_AP, twm_WIFI_APSETUP };
 enum TW_WiFiStatus_t { tws_WIFI_OFF = 0, tws_WIFI_OK, tws_WIFI_DISCONNECTED, tws_WIFI_TRANSITION  };
 
 // Object limited to one instance
@@ -55,20 +55,23 @@ class TinyWeb {
     void begin();                                   // main server start as was configured
     void end();                                     // main server stop
     TW_WiFiMode_t    getWiFiMode();  // Wifi Mode expected by user
-    void             setWiFiMode(TW_WiFiMode_t const mode,const char* ssid= NULL , const char* ssidpassword = NULL);
+    void             setWiFiMode(TW_WiFiMode_t const mode, const char* ssid = NULL , const char* ssidpassword = NULL);
     TW_WiFiStatus_t  getWiFiStatus();                  // Wifi Status is scanned during handleClient()
+    void setHostname(const String hostname);
 
     //void setSTAWiFi(String ssid, String ssidpassword); // setup AP server wifi credential
     //    void configureWiFi(const bool active = false);  // active the AP mode to request wifi credential from the user
     // //   void softAPconnect(const bool active,const bool persistent = false,const char* = NULL);
     //
     void handleEvent();     // handle http service (to call in top of loop)
+
+    void setCallBack_OnRequest(void (*onRequest)(const String &key));          // call back pour gerer les request
+    void redirectTo(String const uri);   //  request will be redirected to this URI if set during or after onRequest call back                                   // force a redirect of the current request (to use in OnSubmit)
     //
-    //    void setCallBack_TranslateKey(void (*translateKey)(String &key));  // call back pour Fournir les [# xxxxx #]
+    void setCallBack_TranslateKey(void (*translateKey)(String &key));  // call back pour Fournir les [# xxxxx #]
     //    void setCallBack_OnRefreshItem(bool (*onRefreshItem)(const String &keyname, String &key));  // call back pour fournir les class='refresh'
-    //    void setCallBack_OnSubmit(void (*onSubmit)(const String &key));          // call back pour gerer les submit
-    //    void setCallBack_OnRepeatLine(bool (*onRepeatLine)(const int num));     // call back pour gerer les Repeat
-    //    void redirectTo(String const uri);                                      // force a redirect of the current request (to use in OnSubmit)
+
+    void setCallBack_OnRepeatLine(bool (*onRepeatLine)(const int num));     // call back pour gerer les Repeat
     //    String getArg(const String argName);
     //    String currentUri();                            // return the last requested URI (actual page in calllback)
     //    // var
@@ -78,8 +81,11 @@ class TinyWeb {
 
     bool WiFiStatusChanged = false;   // Flag set when wifi_Status change
     bool WiFiModeChanged = false;   // Flag set when wifi_Status change
+    String webFolder = "/web";
+    String  _hostname;      //  SSID en mode AP et Serveur name en mode STATION
   private:
-    String  _hostname;   //  SSID en mode AP et Serveur name en mode STATION
+    //    String  _redirectUri;   //  request will be redirected to this URI if set after onRequest call back
+
     TW_WiFiMode_t    _WiFiMode;
     TW_WiFiStatus_t  _WiFiStatus = tws_WIFI_TRANSITION;
 
