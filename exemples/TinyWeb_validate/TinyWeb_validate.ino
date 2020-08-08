@@ -12,6 +12,17 @@
 #include  "TinyWeb.h"
 TinyWeb    ServeurWeb;
 
+//Donnée demandée par les pages web
+void traductionKey(String & key) {
+  if ( key.equals(F("APP_VERSION")) ) {
+    key = APP_VERSION;
+  } else {
+    Serial.print(F("WEB MISS KEY='"));
+    Serial.print(key);
+    Serial.println(F("'"));
+    key += "???";
+  }
+}
 
 
 
@@ -54,7 +65,7 @@ void setup() {
 
 
   //  ServeurWeb.WiFiMode = WIFI_STA;  // mode par defaut
-  //  ServeurWeb.setCallBack_TranslateKey(&traductionKey);
+  ServeurWeb.setCallBack_TranslateKey(&traductionKey);
   //  ServeurWeb.setCallBack_OnRequest(&HttpRequest);
   //  ServeurWeb.setCallBack_OnRefreshItem(&on_RefreshItem);
   //  ServeurWeb.setCallBack_OnRepeatLine(&on_RepeatLine);
@@ -81,7 +92,7 @@ void loop() {
     }
   }
 
- if (ServeurWeb.WiFiModeChanged) {
+  if (ServeurWeb.WiFiModeChanged) {
     //{ twm_WIFI_OFF = 0, twm_WIFI_STA, twm_WIFI_AP,twm_WIFI_APSETUP };
     switch (ServeurWeb.getWiFiMode()) {
       case twm_WIFI_OFF:
@@ -102,9 +113,9 @@ void loop() {
     } //switch
   }// if Mode changed
 
-  
-  
-  
+
+
+
   if (ServeurWeb.WiFiStatusChanged) {
     //WIFI_OFF, WIFI_OK, WIFI_DISCONNECTED, WIFI_TRANSITION
     switch (ServeurWeb.getWiFiStatus()) {
@@ -133,32 +144,32 @@ void loop() {
   {
     char inChar = (char)Serial.read();
     switch (inChar) {
-//      case 'A':
-//        Serial.println("Wifi.begin()");
-//        WiFi.begin();
-//        break;
-//      case 'B':
-//        Serial.println("Wifi.mode(OFF)");
-//
-//        WiFi.mode(WIFI_OFF);
-//
-//        delay(100);
-//        break;
-//      case 'C':
-//        Serial.println("Wifi.mode(AP)");
-//        WiFi.mode(WIFI_AP);
-//        break;
-//      case 'D':
-//        Serial.println("Wifi.mode(STA)");
-//        WiFi.mode(WIFI_STA);
-//        break;
+      //      case 'A':
+      //        Serial.println("Wifi.begin()");
+      //        WiFi.begin();
+      //        break;
+      //      case 'B':
+      //        Serial.println("Wifi.mode(OFF)");
+      //
+      //        WiFi.mode(WIFI_OFF);
+      //
+      //        delay(100);
+      //        break;
+      //      case 'C':
+      //        Serial.println("Wifi.mode(AP)");
+      //        WiFi.mode(WIFI_AP);
+      //        break;
+      //      case 'D':
+      //        Serial.println("Wifi.mode(STA)");
+      //        WiFi.mode(WIFI_STA);
+      //        break;
       //      case 'E':
       //        persistentStat = !persistentStat;
       //        Serial.print("persistent ");
       //        Serial.println(persistentStat);
       //        Serial.setDebugOutput(persistentStat);
       //        break;
-     case 'G':
+      case 'G':
         Serial.println("Hostname = ''");
         ServeurWeb.setHostname("");
         break;
@@ -168,12 +179,12 @@ void loop() {
         ServeurWeb.setHostname("TINYWEB");
         break;
 
-//      case 'I':
-//        Serial.println("forceSleepBegin");
-//
-//        WiFi.forceSleepBegin();
-//        delay(100);
-//        break;
+      //      case 'I':
+      //        Serial.println("forceSleepBegin");
+      //
+      //        WiFi.forceSleepBegin();
+      //        delay(100);
+      //        break;
 
 
 
@@ -199,23 +210,23 @@ void loop() {
       //        WiFi.setSleepMode (WIFI_MODEM_SLEEP, listenInterval);
       //        break;
 
-            case '0':
-              Serial.println("setWiFiMode(WiFi_OFF)");
-              ServeurWeb.setWiFiMode(twm_WIFI_OFF);
-              break;
-            case '1':
-              Serial.println("setWiFiMode(WiFi_STA)");
-              ServeurWeb.setWiFiMode(twm_WIFI_STA);
-              break;
-           case '2':
-              Serial.println("setWiFiMode(WiFi_STA)");
-              ServeurWeb.setWiFiMode(twm_WIFI_STA);
-              break;
-               
-            case '3':
-              Serial.println("setWiFiMode(WiFi_AP with SSID & PASS)");
-              ServeurWeb.setWiFiMode(twm_WIFI_STA,"mon_wifi","ultrasecret");
-              break;
+      case '0':
+        Serial.println("setWiFiMode(WiFi_OFF)");
+        ServeurWeb.setWiFiMode(twm_WIFI_OFF);
+        break;
+      case '1':
+        Serial.println("setWiFiMode(WiFi_STA)");
+        ServeurWeb.setWiFiMode(twm_WIFI_STA);
+        break;
+      case '2':
+        Serial.println("setWiFiMode(WiFi_STA)");
+        ServeurWeb.setWiFiMode(twm_WIFI_STA);
+        break;
+
+      case '3':
+        Serial.println("setWiFiMode(WiFi_AP with SSID & PASS)");
+        ServeurWeb.setWiFiMode(twm_WIFI_STA, "mon_wifi", "ultrasecret");
+        break;
       //      case '4':
       //        Serial.println("setmode wifi station");
       //        ServeurWeb.WiFiMode = TWS_WIFI_STATION;
@@ -234,9 +245,9 @@ void loop() {
         ESP.reset();
         while (1) {};
         break;
-//      case 'S':
-//        WiFi.printDiag(Serial);
-//        break;
+      //      case 'S':
+      //        WiFi.printDiag(Serial);
+      //        break;
       case 'Z':
         Serial.print("long delay ");
         for (int N = 1; N <= 30; N++) {
