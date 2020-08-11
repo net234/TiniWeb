@@ -69,7 +69,7 @@ class TinyWeb {
     void redirectTo(String const uri);   //  request will be redirected to this URI if set during or after onRequest call back                                   // force a redirect of the current request (to use in OnSubmit)
     //
     void setCallBack_TranslateKey(void (*translateKey)(String &key));  // call back pour Fournir les [# xxxxx #]
-    //    void setCallBack_OnRefreshItem(bool (*onRefreshItem)(const String &keyname, String &key));  // call back pour fournir les class='refresh'
+    void setCallBack_OnRefreshItem(bool (*onRefreshItem)(const String &keyname, String &key));  // call back pour fournir les class='refresh'
 
     void setCallBack_OnRepeatLine(bool (*onRepeatLine)(const int num));     // call back pour gerer les Repeat
     //    String getArg(const String argName);

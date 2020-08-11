@@ -690,10 +690,10 @@ TW_WiFiMode_t TinyWeb::getWiFiMode() {
 //
 //
 //// Dealing with WEB HTTP request
-////#define LOCHex2Char(X) (X + (X <= 9 ? '0' : ('A' - 10)))
-//char LOCHex2Char( byte aByte) {
-//  return aByte + (aByte <= 9 ? '0' : 'A' -  10);
-//}
+//#define LOCHex2Char(X) (X + (X <= 9 ? '0' : ('A' - 10)))
+char LOCHex2Char( byte aByte) {
+  return aByte + (aByte <= 9 ? '0' : 'A' -  10);
+}
 //
 //
 //// looking for requested file into local web pages
@@ -793,75 +793,69 @@ void HTTP_HandleRequests() {
 
 
 
-  //  // ================ SPECIFIC QUERY REFRESH  START =======================
+  //  // ================ SPECIFIC FOR "QUERY REFRESH"  START =======================
   //
-  //  // query 'refresh' sended by 'miniServerWeb.js' to update class 'refresh' web items
-  //  // if first arg is named 'refresh'  all itmes are translated with  onRefreshItem  call back
-  //  // then they are sended back to client in a urlencoded string
-  //  if (Serveur.args() > 0 && Serveur.argName(0) == "refresh") {
-  //    // debug track
-  //    Serial.print(F("WEB: Query refresh ("));
-  //    if (Serveur.method() == HTTP_POST) {
-  //      Serial.print(Serveur.arg(Serveur.args() - 1).length());
-  //      Serial.print(F(") "));
-  //      Serial.println(Serveur.arg(Serveur.args() - 1)); // try to get 'plain'
-  //    } else {
-  //      Serial.print(Serveur.arg(0).length());
-  //      Serial.print(F(") "));
-  //      Serial.println(Serveur.arg(0)); // try to get 'plain'
-  //    }
-  //
-  //    // traitement des chaines par le Sketch
-  //    String answer;
-  //    answer.reserve(1000);   // should be max answer
-  //    String aKey;
-  //    aKey.reserve(500);      // should be max for 1 value
-  //    String aKeyName;
-  //    aKeyName.reserve(50);
-  //    for (uint8_t N = 1; N < Serveur.args(); N++) {
-  //      //     Serial.print(F("WEB: refresh "));
-  //      //     Serial.print(Serveur.argName(N));
-  //      //     Serial.print(F("="));
-  //      //      Serial.println(Serveur.arg(N));
-  //      aKeyName = Serveur.argName(N);
-  //      aKey = Serveur.arg(N);
-  //      if ( !aKeyName.equals("refresh") && !aKeyName.equals("plain") && onRefreshItem(aKeyName, aKey) ) {
-  //        if (answer.length() > 0) answer += '&';
-  //        answer +=  aKeyName;
-  //        answer +=  '=';
-  //        if ( aKey.length() > 500) {
-  //          aKey.remove(490);
-  //          aKey += "...";
-  //        }
-  //        // uri encode maison :)
-  //        for (int N = 0; N < aKey.length(); N++) {
-  //          char aChar = aKey[N];
-  //          if ( isAlphaNumeric(aChar) ) {
-  //            answer +=  aChar;
-  //          } else {
-  //            answer +=  '%';
-  //            answer += LOCHex2Char( aChar >> 4 );
-  //            answer += LOCHex2Char( aChar & 0xF);
-  //          } // if alpha
-  //        } // for
-  //      } // valide keyname
-  //    } // for each arg
-  //
-  //    Serial.print(F("WEB: refresh answer ("));
-  //    Serial.print(answer.length());
-  //    Serial.print(F(") "));
-  //    Serial.println(answer);
-  //
-  //    Serveur.sendHeader("Cache-Control", "no-cache");
-  //    Serveur.setContentLength(answer.length());
-  //    Serveur.send(200, fileMIME.c_str(), answer);
-  //    //    Serveur.client().stop();
-  //    //    Serial.print(answer.length());
-  //    //    Serial.println(F(" car."));
-  //
-  //    return;
-  //
-  //  }
+  // query 'refresh' is a POST sended by 'tinyWeb.js' to update class 'refresh' web items in real time
+  // if first arg is named 'refresh'  all itmes are translated with  onRefreshItem  call back
+  // then they are sended back to client in a urlencoded string
+  if (Server.method() == HTTP_POST && Server.args() > 0 && Server.argName(0) == "refresh") {
+    // debug track
+    Serial.print(F("WEB: Query refresh ("));
+
+    Serial.print(Server.arg(Server.args() - 1).length());
+    Serial.print(F(") "));
+    Serial.println(Server.arg(Server.args() - 1)); // try to get 'plain'
+    // traitement des chaines par le Sketch
+    String answer;
+    answer.reserve(1000);   // should be max answer
+    String aKey;
+    aKey.reserve(500);      // should be max for 1 value
+    String aKeyName;
+    aKeyName.reserve(50);
+    for (uint8_t N = 0; N < Server.args(); N++) {
+      //     Serial.print(F("WEB: refresh "));
+      //     Serial.print(Serveur.argName(N));
+      //     Serial.print(F("="));
+      //      Serial.println(Serveur.arg(N));
+      aKeyName = Server.argName(N);
+      aKey = Server.arg(N);
+      if ( !aKeyName.equals("plain") && onRefreshItem(aKeyName, aKey) ) {
+        if (answer.length() > 0) answer += '&';
+        answer +=  aKeyName;
+        answer +=  '=';
+        if ( aKey.length() > 500) {
+          aKey.remove(490);
+          aKey += "...";
+        }
+        // uri encode maison :)
+        for (int N = 0; N < aKey.length(); N++) {
+          char aChar = aKey[N];
+          if ( isAlphaNumeric(aChar) ) {
+            answer +=  aChar;
+          } else {
+            answer +=  '%';
+            answer += LOCHex2Char( aChar >> 4 );
+            answer += LOCHex2Char( aChar & 0xF);
+          } // if alpha
+        } // for
+      } // valide keyname
+    } // for each arg
+
+    Serial.print(F("WEB: refresh answer ("));
+    Serial.print(answer.length());
+    Serial.print(F(") "));
+    Serial.println(answer);
+    //
+    Server.sendHeader("Cache-Control", "no-cache");
+    Server.setContentLength(answer.length());
+    Server.send(200, fileMIME.c_str(), answer);
+    //    Serveur.client().stop();
+    //    Serial.print(answer.length());
+    //    Serial.println(F(" car."));
+
+    return;
+
+  }
   //  // ================ QUERY REFRESH  END =======================
   //
   //
@@ -1001,9 +995,9 @@ void TinyWeb::setCallBack_TranslateKey(void (*translatekey)(String & key))  {
 //  onSubmitPtr =  onsubmit;
 //}
 //
-//void MiniServeurWeb::setCallBack_OnRefreshItem(bool (*onrefreshitem)(const String & keyname, String & key)) {
-//  onRefreshItemPtr = onrefreshitem;
-//}
+void TinyWeb::setCallBack_OnRefreshItem(bool (*onrefreshitem)(const String & keyname, String & key)) {
+  onRefreshItemPtr = onrefreshitem;
+}
 //
 //
 void TinyWeb::setCallBack_OnRepeatLine(bool (*onrepeatline)(const int num)) {     // call back pour gerer les Repeat

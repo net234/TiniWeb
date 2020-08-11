@@ -1,22 +1,21 @@
 /////////////////////////////
-// MiniServeurWeb.js  (C) 07/2020 NET234 Pierre HENRY  
+// tinyweb.js  (C) 07/2020 NET234 Pierre HENRY  
 // https://github.com/net234/MiniServeurWeb
 //
 // Recuperation des données dynamique via une HTTP POST sur la page d'origine
-// Fonctionne avec la librairie miniserveurweb.h
+// Fonctionne avec la librairie tinyweb.h
 // 
 // V1.0 
 // 
 // Global
 var req_data = null;
-var refreshTimeout = 1000;
-var previousRefreshTimeout = 0;
+var refreshTimeout = 0;
 
 // GetAsyncData envoie une requête a l'adresse courante 
 function GetAsyncData() {
 	var refreshList = document.querySelectorAll('.refresh');
 	if (refreshList.length == 0) {
-		return;
+		return;  // abort   refreshList will not be call again
 	}
 	
 	var url = window.location;
@@ -29,25 +28,20 @@ function GetAsyncData() {
 		req_data = new ActiveXObject('Microsoft.XMLHTTP');
 	}
 	if (req_data == null) {
-		return;
+		return;  //abort no XMLHttpRequest allowed here
 	}
 	req_data.abort();
 	req_data.onreadystatechange = GotAsyncData;
 	req_data.open('POST', url, true);
 	req_data.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-	var refreshString = 'refresh';
+	var refreshString = 'refresh='+ refreshTimeout;
 	for (var item of refreshList) {
 		if (item.innerHTML.length <= 100) {
 			refreshString += '&' + item.id + '=' + encodeURIComponent(item.innerHTML);
 		} else {
 			refreshString += '&' + item.id + '_TOO_BIG'
 		}
-	}
-	// Specific for refreshtimeout
-	if (refreshTimeout != previousRefreshTimeout) {
-		previousRefreshTimeout = refreshTimeout;
-		refreshString += '&refreshTimeout=' + refreshTimeout;
 	}
 	req_data.send(refreshString);
 }
@@ -68,11 +62,8 @@ function GotAsyncData() {
 	var urlParams = new URLSearchParams(req_data.responseText);
 	for (var item of urlParams) {
 		// Internal value refreshTimeout can be changed (or displayed too)
-		if (item[0] == 'refreshTimeout') {
-			var aInt = item[1].valueOf();
-			if (aInt >= 100) {
-				refreshTimeout = aInt;
-			}
+		if (item[0] == 'refresh') {
+			refreshTimeout = item[1].valueOf();
 		}
 		// Document value changed with 100Byte limitation
 		var aEle = document.getElementById(item[0]);
@@ -86,10 +77,16 @@ function GotAsyncData() {
 		}
 	}
 	try {
+      // callback to user js code to warn abour end of refresh
 	  refreshPage();
 	} catch {		
 	}
 	// Next iteration
-	setTimeout("GetAsyncData()", refreshTimeout);
+	if (refreshTimeout > 0 ) {
+		if (refreshTimeout < 100) {
+			refreshTimeout = 100
+		}
+		setTimeout("GetAsyncData()", refreshTimeout);
+	}
 	return;
 }

@@ -12,7 +12,7 @@
 #include  "TinyWeb.h"
 TinyWeb    ServeurWeb;
 
-//Donnée demandée par les pages web
+//Données demandées par les pages web par les tag "[#key#]"
 void traductionKey(String & key) {
   if ( key.equals(F("APP_VERSION")) ) {
     key = APP_VERSION;
@@ -24,15 +24,36 @@ void traductionKey(String & key) {
   }
 }
 
+//Donnée de refraichissement demandée par les pages web
+bool on_RefreshItem(const String & keyname, String & key) {
+  Serial.print(F("Got refresh "));
+  Serial.print(keyname);
+  Serial.print(F("="));
+  Serial.println(key);
+
+  if ( keyname.equals("CLOCK") ) {
+    long now = millis() / 1000;
+    String akey = String((now / 60) % 60) + ":" + String(now % 60);
+    if (akey != key) {
+      key = akey;
+      return (true);
+    }
+    return (false);
+  }
+  if ( keyname.equals("refresh") ) {
+    if (key.toInt() != 300) {
+      key = "300";
+      return (true);
+    }
+    return (false);
+  }
+
+}
 
 
 //
-//bool debugStat = true;
-//bool persistentStat = true;
-//int  listenInterval = 0;
 bool resetRequested = false;
-//String wifiSSD;
-//String wifiPASS;
+
 
 
 
@@ -67,7 +88,7 @@ void setup() {
   //  ServeurWeb.WiFiMode = WIFI_STA;  // mode par defaut
   ServeurWeb.setCallBack_TranslateKey(&traductionKey);
   //  ServeurWeb.setCallBack_OnRequest(&HttpRequest);
-  //  ServeurWeb.setCallBack_OnRefreshItem(&on_RefreshItem);
+  ServeurWeb.setCallBack_OnRefreshItem(&on_RefreshItem);
   //  ServeurWeb.setCallBack_OnRepeatLine(&on_RepeatLine);
   ServeurWeb.begin();
 }
