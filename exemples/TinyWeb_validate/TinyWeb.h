@@ -77,7 +77,7 @@ class TinyWeb {
     //    // var
     byte debugLevel = 3;  // 0 = none 1 = minimal 2 = variable request 3 = wifi debug (must be set before begin)
     //
-    //    String  lastLocalIp;
+    String  _localIp;
 
     bool WiFiStatusChanged = false;   // Flag set when wifi_Status change
     bool WiFiModeChanged = false;   // Flag set when wifi_Status change

@@ -22,7 +22,7 @@ const byte    DNS_PORT = 53;
 //#define MP_STRSIZE 25   // taille maxi d'une chaine dans les MP (Memoire Protegee)
 #define MWEB_DEFAULT_SSID "TINYWEB_"
 
-
+#include "wifisetup.h"
 
 // ====== DO NOT REMOVE ===========================
 // Compile without theses include but AP wont work on specific board ????
@@ -61,12 +61,23 @@ void translateKey(String &key) {
     key = WiFi.softAPIP().toString();
   } else if ( key.equals(F("SOFTAP_MAC")) ) {
     key = WiFi.softAPmacAddress();
-    //  } else if ( key.equals(F("STATION_IP")) ) {
-    //    key = tinyWebPtr->lastLocalIp;
+  } else if ( key.equals(F("STATION_IP")) ) {
+    key = tinyWebPtr->_localIp;
   } else if ( key.equals(F("HOSTNAME")) ) {
     key = tinyWebPtr->_hostname;
   } else if ( key.equals(F("STATION_MAC")) ) {
     key = WiFi.macAddress();
+
+    //specific wifisetuo
+  } else if ( key.equals(F("SSID_NAME")) ) {
+    key = WiFi.SSID(network[currentLine]);
+  } else if ( key.equals(F("SSID_LEVEL")) ) {
+    int level = RSSIdbToPercent(network[currentLine]);
+    if (level > 100) level = 100;
+    key = level;
+  } else if ( key.equals(F("SSID_LOCK")) ) {
+    key = "&nbsp;";
+    if (WiFi.encryptionType(network[currentLine]) != ENC_TYPE_NONE) key = "&#128274;";
   } else if (translateKeyPtr) {
     (*translateKeyPtr)(key);
   }
@@ -91,6 +102,13 @@ bool onRefreshItem(const String &keyname, String &key) {
 bool (*onRepeatLinePtr)(const int num) = NULL;
 
 bool onRepeatLine(const int num) {
+
+  if ( Server.arg(F("tinyweb")).equals(F("show_wifi")) ) {
+    currentLine = num;
+    if (currentLine == 0) scanNetwork();
+    return (num < networkSize && RSSIdbToPercent(network[num]) > 25 );
+  }
+
   if (onRepeatLinePtr) return (*onRepeatLinePtr)(num);
   return (false);
 }
@@ -296,6 +314,7 @@ void TinyWeb::handleEvent() {
     if (_WiFiMode == twm_WIFI_STA) {
       if (status == WL_CONNECTED) {
         wifiStatus = tws_WIFI_OK;
+        _localIp = WiFi.localIP().toString();
       } else {
         wifiStatus = tws_WIFI_DISCONNECTED;
       }
@@ -744,10 +763,12 @@ void HTTP_HandleRequests() {
   String fileName = tinyWebPtr->webFolder;
   //  // captive query are rooted to web/wifisetup folder
   //  if (rootWifiSetup) fileName += "/wifisetup";
+
   fileName += Server.uri();
   // todo   protection against ../
 
   if (fileName.endsWith(F("/")) ) fileName += "index.html";   //default page ;
+
   String fileMIME;
 
   // find MIMETYPE for standard files
@@ -780,6 +801,19 @@ void HTTP_HandleRequests() {
 
   redirectUri = "";
   onRequest(fileName);
+
+//// if any arg is named 'submit' ==> send submit to call back onSubmit
+//  for (uint8_t i = 0; i < Serveur.args(); i++) {
+//    if ( Server.arg(F("submit")).equals() ) {
+//
+//      Serial.print(F("WEB: Submit "));
+//      Serial.println(Serveur.arg(i));
+//      String value = Serveur.arg(i);
+//      onSubmit(value);   //appel du callback
+//    }
+//  }
+//
+  
   // if call back onRequest want a redirect
   if (redirectUri.length() > 0) {
     Serial.print(F("WEB redirect "));

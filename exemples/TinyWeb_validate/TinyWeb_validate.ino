@@ -66,23 +66,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println(F(APP_VERSION));
 
-  //Serial.setDebugOutput(true);  // affichage du debug mode pour webserver
-
-  //  // recuperation du nom de la device
-  //  LittleFS.begin();
-  //  String aString;
-  //  File aFile = LittleFS.open(F("config.txt"), "r");
-  //  if (aFile) {
-  //    aString = aFile.readStringUntil( '\n' );
-  //    Serial.println(aString);
-  //    if (aString.startsWith(F("HOSTNAME="))) {
-  //      aString.remove(0, 9);
-  //      ServeurWeb.hostname = aString;
-  //    }
-  //    aFile.close();
-  //  }
-  //Serveur WEB
-
+  //Serial.setDebugOutput(true);  // affichage du debug mode pour webserve
 
 
   //  ServeurWeb.WiFiMode = WIFI_STA;  // mode par defaut
