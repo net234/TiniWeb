@@ -114,83 +114,6 @@ bool onRepeatLine(const int num) {
 }
 
 
-//void scan() {
-//  const char item PROGMEM   = "<div><a href='#p' onclick='c(this)'>{v}</a>&nbsp;<span class='q {i}'>{r}%</span></div>";
-//  if (scan) {
-//    int n = WiFi.scanNetworks();
-//    DEBUG_WM(F("Scan done"));
-//    if (n == 0) {
-//      DEBUG_WM(F("No networks found"));
-//      page += F("No networks found. Refresh to scan again.");
-//    } else {
-//
-//      //sort networks
-//      int indices[n];
-//      for (int i = 0; i < n; i++) {
-//        indices[i] = i;
-//      }
-//
-//      // RSSI SORT
-//
-//      // old sort
-//      for (int i = 0; i < n; i++) {
-//        for (int j = i + 1; j < n; j++) {
-//          if (WiFi.RSSI(indices[j]) > WiFi.RSSI(indices[i])) {
-//            std::swap(indices[i], indices[j]);
-//          }
-//        }
-//      }
-//
-//      /*std::sort(indices, indices + n, [](const int & a, const int & b) -> bool
-//        {
-//        return WiFi.RSSI(a) > WiFi.RSSI(b);
-//        });*/
-//
-//      // remove duplicates ( must be RSSI sorted )
-//      if (_removeDuplicateAPs) {
-//        String cssid;
-//        for (int i = 0; i < n; i++) {
-//          if (indices[i] == -1) continue;
-//          cssid = WiFi.SSID(indices[i]);
-//          for (int j = i + 1; j < n; j++) {
-//            if (cssid == WiFi.SSID(indices[j])) {
-//              DEBUG_WM("DUP AP: " + WiFi.SSID(indices[j]));
-//              indices[j] = -1; // set dup aps to index -1
-//            }
-//          }
-//        }
-//      }
-//
-//      //display networks in page
-//      for (int i = 0; i < n; i++) {
-//        if (indices[i] == -1) continue; // skip dups
-//        DEBUG_WM(WiFi.SSID(indices[i]));
-//        DEBUG_WM(WiFi.RSSI(indices[i]));
-//        int quality = getRSSIasQuality(WiFi.RSSI(indices[i]));
-//
-//        if (_minimumQuality == -1 || _minimumQuality < quality) {
-//          String item = FPSTR(HTTP_ITEM);
-//          String rssiQ;
-//          rssiQ += quality;
-//          item.replace("{v}", WiFi.SSID(indices[i]));
-//          item.replace("{r}", rssiQ);
-//          if (WiFi.encryptionType(indices[i]) != ENC_TYPE_NONE) {
-//            item.replace("{i}", "l");
-//          } else {
-//            item.replace("{i}", "");
-//          }
-//          //DEBUG_WM(item);
-//          page += item;
-//          delay(0);
-//        } else {
-//          DEBUG_WM(F("Skipping due to quality"));
-//        }
-//
-//      }
-//      page += "<br/>";
-//    }
-//  }
-//}
 
 
 // ============   tools to handle captive portal  ============
@@ -801,20 +724,25 @@ void HTTP_HandleRequests() {
 
   redirectUri = "";
   onRequest(fileName);
-
-//// if any arg is named 'submit' ==> send submit to call back onSubmit
-//  for (uint8_t i = 0; i < Serveur.args(); i++) {
-//    if ( Server.arg(F("submit")).equals() ) {
-//
-//      Serial.print(F("WEB: Submit "));
-//      Serial.println(Serveur.arg(i));
-//      String value = Serveur.arg(i);
-//      onSubmit(value);   //appel du callback
-//    }
-//  }
-//
-  
   // if call back onRequest want a redirect
+  if ( redirectUri.length() == 0 && Server.hasArg(F("submit")) ) {
+    String submit = Server.arg(F("submit"));
+    Serial.print(F("WEB: Submit action '"));
+    Serial.print(submit);
+    Serial.println("'");
+    for (uint8_t i = 0; i < Server.args(); i++) {
+      String argname = Server.argName(i);
+      if ( !argname.equals(F("submit")) && !argname.equals(F("plain")) ) {
+        Serial.print(F("WEB: Submit arg "));
+        Serial.print(argname);
+        Serial.print(F("->"));
+        Serial.println(Server.arg(i));
+        String value = Server.arg(i);
+        //  onSubmit(value);   //appel du callback
+      }
+    }
+  }
+
   if (redirectUri.length() > 0) {
     Serial.print(F("WEB redirect "));
     Serial.println(redirectUri);
@@ -853,7 +781,7 @@ void HTTP_HandleRequests() {
       //      Serial.println(Serveur.arg(N));
       aKeyName = Server.argName(N);
       aKey = Server.arg(N);
-      if ( !aKeyName.equals("plain") && onRefreshItem(aKeyName, aKey) ) {
+      if ( !aKeyName.equals(F("plain")) && onRefreshItem(aKeyName, aKey) ) {
         if (answer.length() > 0) answer += '&';
         answer +=  aKeyName;
         answer +=  '=';
@@ -888,8 +816,12 @@ void HTTP_HandleRequests() {
     //    Serial.println(F(" car."));
 
     return;
-
   }
+
+
+
+
+
   //  // ================ QUERY REFRESH  END =======================
   //
   //
