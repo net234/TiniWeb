@@ -84,10 +84,35 @@ void translateKey(String &key) {
 }
 
 //pointer du gestionaire de request
-void (*onRequestPtr)(const String &filename) = NULL;
+void (*onRequestPtr)(const String &uri, const String &submit) = NULL;
 
-void onRequest(String &filename) {
-  if (onRequestPtr) (*onRequestPtr)(filename);
+void onRequest(const String &uri, const String &submit) {
+
+  // track "/configure.html"
+  if (&submit && submit.equals(F("tinyweb_wifisetup")) ) {
+    String aString = Server.arg(F("SSID"));
+    aString.trim();
+    if (aString.length() >= 2 && aString.length() <= 32) {
+      
+      String wifiSSD = aString;
+      String wifiPASS = Server.arg(F("PASS"));
+      aString = Server.arg(F("HOSTNAME"));
+      aString.trim();
+      Serial.print(F("Got Hostname="));
+      Serial.print(aString);
+      if (!aString.equals(tinyWebPtr->_hostname) ) {
+        tinyWebPtr->setHostname(aString);
+      }
+      delay(100);
+      tinyWebPtr->setWiFiMode(twm_WIFI_STA, wifiSSD.c_str(), wifiPASS.c_str());
+      Serial.print(F("request connectWiFi="));
+      Serial.println(wifiSSD);
+      tinyWebPtr->redirectTo(F("wait.html"));
+    }
+    return;
+  }
+
+  if (onRequestPtr) (*onRequestPtr)(uri, submit);
 }
 
 //pointeur du gestionanire de refresh
@@ -719,29 +744,31 @@ void HTTP_HandleRequests() {
     fileMIME = F("text/html");
   }
 
-  // On request callback is call to inform sketch of any http request
+  // On request callback is call to inform sketch of any http request with the submit name if submit arg exist
   // if redirectTo(aUri) is set then an error 302 will be sent to redirect request
 
   redirectUri = "";
-  onRequest(fileName);
-  // if call back onRequest want a redirect
-  if ( redirectUri.length() == 0 && Server.hasArg(F("submit")) ) {
-    String submit = Server.arg(F("submit"));
+  const String* submitPtr = nullptr;
+  if ( Server.hasArg(F("submit")) ) {
+    submitPtr = &(Server.arg(F("submit")));
     Serial.print(F("WEB: Submit action '"));
-    Serial.print(submit);
+    Serial.print(*submitPtr);
     Serial.println("'");
-    for (uint8_t i = 0; i < Server.args(); i++) {
-      String argname = Server.argName(i);
-      if ( !argname.equals(F("submit")) && !argname.equals(F("plain")) ) {
-        Serial.print(F("WEB: Submit arg "));
-        Serial.print(argname);
-        Serial.print(F("->"));
-        Serial.println(Server.arg(i));
-        String value = Server.arg(i);
-        //  onSubmit(value);   //appel du callback
-      }
-    }
+    //    for (uint8_t i = 0; i < Server.args(); i++) {
+    //      String argname = Server.argName(i);
+    //      if ( !argname.equals(F("submit")) && !argname.equals(F("plain")) ) {
+    //        Serial.print(F("WEB: Submit arg "));
+    //        Serial.print(argname);
+    //        Serial.print(F("->"));
+    //        Serial.println(Server.arg(i));
+    //        String value = Server.arg(i);
+    //        //  onSubmit(value);   //appel du callback
+    //      }
+    //    }
+
   }
+
+  onRequest(fileName, *submitPtr);
 
   if (redirectUri.length() > 0) {
     Serial.print(F("WEB redirect "));
@@ -855,17 +882,15 @@ void HTTP_HandleRequests() {
       } else {
 
         // chunked file are read line by line with spefic keyword detection
-        if (!repeatActive) {
-
+        if (!repeatActive) {  // if repeat we will send the repeat line
           // if not in repeat line mode   just read one line
           size = aFile.readBytesUntil( '\n', aBuffer, 1000 );
           if (size < 1000) aBuffer[size++] = '\n'; //!!! on exactly 1000 bytes lines the '\n' will be lost :)
           aBuffer[size] = 0x00; // make aBuffer a Cstring
           // Gestion du [# REPEAT_LINE #]
-          // if a line start with  [#REPEAT_LINE#] it will be sended while OnRepat Call bask retourne true
-          // this help to display records of database
+          // if a line start with  [#REPEAT_LINE#] it will be sended until OnRepat Call bask returne false
+          // this help to display records of database ot any table
           if (strncmp( "[#REPEAT_LINE#]", aBuffer, 15) == 0) {
-            //            Serial.println(F("Repeat line detected"));
             // Save the line in  repeat buffer
             strcpy(repeatBuffer, aBuffer + 15);
             repeatActive = true;
@@ -877,12 +902,11 @@ void HTTP_HandleRequests() {
           // ask the sketch if we should repeat
           repeatActive = onRepeatLine(repeatNumber++);
           if ( repeatActive ) strcpy(aBuffer, repeatBuffer);
-
           size = strlen(aBuffer);
         }
 
         char* currentPtr = aBuffer;
-        // cut line in par to deal with kerwords "[# xxxxx #]"
+        // cut line in part to deal with kerwords "[# xxxxx #]"
         while ( currentPtr = strstr(currentPtr, "[#") ) {  // start detected
           char* startPtr = currentPtr + 2;
           char* stopPtr = strstr( startPtr + 1, "#]" ); // at least 1 letter keyword [#  #]
@@ -894,8 +918,6 @@ void HTTP_HandleRequests() {
           char aKey[41];
           strncpy(aKey, startPtr, len);
           aKey[len] = 0x00;   // aKey is Cstring
-          //Serial.print("Key=");
-          //Serial.println(aKey);
           String aStr;
           aStr.reserve(100);
           aStr = aKey;
@@ -904,7 +926,7 @@ void HTTP_HandleRequests() {
           translateKey(aStr);
 
           // Copie de la suite de la chaine ailleur
-          static  char bBuffer[500];   //  todo   deal correctly with over 500 char lines
+          static  char bBuffer[500];   //  todo   deal correctly with over 500 char lines  // static dont overload heap
           strncpy(bBuffer, stopPtr + 2, 500);
 
           // Ajout de la chaine de remplacement
@@ -927,7 +949,7 @@ void HTTP_HandleRequests() {
     aFile.close();
     return;
   }
-  //  //  }
+  //  deal with file not found
   Serial.println("error 404");
   String message = F("File Not Found\n");
   message += "URI: ";
@@ -944,7 +966,6 @@ void HTTP_HandleRequests() {
   message += "<H2><a href=\"/\">go home</a></H2><br>";
   Server.send(404, "text/html", message);
   Server.client().stop();
-  //}
 }
 
 
@@ -956,16 +977,13 @@ void HTTP_HandleRequests() {
 void TinyWeb::setCallBack_TranslateKey(void (*translatekey)(String & key))  {
   translateKeyPtr =  translatekey;
 }
-//
-//void MiniServeurWeb::setCallBack_OnSubmit(void (*onsubmit)(const String & key))  {
-//  onSubmitPtr =  onsubmit;
-//}
-//
+
+
 void TinyWeb::setCallBack_OnRefreshItem(bool (*onrefreshitem)(const String & keyname, String & key)) {
   onRefreshItemPtr = onrefreshitem;
 }
-//
-//
+
+
 void TinyWeb::setCallBack_OnRepeatLine(bool (*onrepeatline)(const int num)) {     // call back pour gerer les Repeat
   onRepeatLinePtr = onrepeatline;
 }
@@ -976,6 +994,7 @@ void TinyWeb::setCallBack_OnRepeatLine(bool (*onrepeatline)(const int num)) {   
 //}
 //
 //
+
 void TinyWeb::redirectTo(String const uri) {
   redirectUri = uri;
 }
@@ -1012,8 +1031,9 @@ void TinyWeb::setHostname(const String hostname) {
     _hostname += WiFi.macAddress().substring(15, 17);
   }
   _hostname.replace(' ', '_');
-
 }
+
+
 void TinyWeb::begin() {
 
   // recuperation des info en flash WIFI
@@ -1064,23 +1084,14 @@ void TinyWeb::begin() {
     Serial.println("FS Ok");
   }
 
-
-
-  //  Serial.println(F("Set WIFI ON"));
-  //  WiFi.begin();
-  //  delay(1000);
   // mise en place des call back web
-  //Serveur.on(F("/"), HTTPCallBack_display);                        // affichage de l'etat du SONOFF
   Server.onNotFound(HTTP_HandleRequests);
   Serial.setDebugOutput(debugLevel >= 3);
   Serial.print("Serveur.begin");
   Server.begin();
-
-  Serial.print("Hostname : ");
+  Serial.print("WEB: Hostname : ");
   Serial.println(_hostname);
   delay(100);
-
-
 
   return ;
 }
