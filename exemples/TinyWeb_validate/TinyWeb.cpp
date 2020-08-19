@@ -93,7 +93,7 @@ void onRequest(const String &uri, const String &submit) {
     String aString = Server.arg(F("SSID"));
     aString.trim();
     if (aString.length() >= 2 && aString.length() <= 32) {
-      
+
       String wifiSSD = aString;
       String wifiPASS = Server.arg(F("PASS"));
       aString = Server.arg(F("HOSTNAME"));
@@ -277,7 +277,7 @@ void TinyWeb::handleEvent() {
     _WiFiStatus = wifiStatus;
     WiFiStatusChanged = true;
     MDNS.end();
-    if (_WiFiMode == twm_WIFI_STA && _WiFiStatus == tws_WIFI_OK) {
+    if ( (_WiFiMode == twm_WIFI_STA || _WiFiMode == twm_WIFI_AP) && _WiFiStatus == tws_WIFI_OK ) {
       MDNS.begin(_hostname);
       Serial.print(F("MS DNS ON : "));
       Serial.println(_hostname);
@@ -289,7 +289,7 @@ void TinyWeb::handleEvent() {
   }
 
   Server.handleClient();
-  if (_WiFiMode == twm_WIFI_STA) MDNS.update();
+  if (_WiFiMode == twm_WIFI_STA || _WiFiMode == twm_WIFI_AP) MDNS.update();
 }
 
 
@@ -463,78 +463,6 @@ TW_WiFiMode_t TinyWeb::getWiFiMode() {
   return (_WiFiMode);
 }
 
-//case TWS_WIFI_OFF:
-//        MDNS.end();
-//        WiFi.mode(WIFI_OFF);
-//        delay(10);
-//        WiFi.forceSleepBegin();
-//        break;
-//      case TWS_WIFI_STATION:
-//        WiFi.mode(WIFI_STA);
-//        break;
-//      case TWS_WIFI_SOFTAP:
-//        WiFi.mode(WIFI_AP);
-//        break;
-//      case TWS_WIFI_SETUP_STATION:
-//        WiFi.mode(WIFI_AP);
-//        break;
-
-//
-//
-//// Mode STA
-//// todo  try connection and revalidate old credential if not ok
-//void MiniServeurWeb::connectWiFi(String ssid, String password, bool const tryConfig) {
-//  configureWiFi(false);  //Stop captive
-//  newConfigSSID = ssid;
-//  newConfigPASS = password;
-//  newConfigTry  = tryConfig;
-//  newConfigValide = !tryConfig;
-//  timerWiFiStop = millis();
-//  _WiFiStatus = TWS_TRANSITION;  // en transition
-//  delay(10);
-//  //  Serial.print("connectWiFi: ");
-//  //
-//  // // ETS_UART_INTR_DISABLE();
-//  // //   WiFi.disconnect();
-//  // // ETS_UART_INTR_ENABLE();
-//  // // delay(10);
-//  //  WiFi.persistent(true);  // just in case
-//  //  delay(10);
-//  //  WiFi.mode(WIFI_OFF);
-//  //
-//  //  int N = 0;
-//  //  while (WiFi.status() !=WL_DISCONNECTED && N++ < 50) {
-//  //    delay(100); Serial.print('X');
-//  //  }
-//  ////    wifi_station_disconnect();
-//  ////    wifi_set_opmode(NULL_MODE);
-//  ////    wifi_set_sleep_type(MODEM_SLEEP_T);
-//  ////    wifi_fpm_open();
-//  ////    #define FPM_SLEEP_MAX_TIME 0xFFFFFFF
-//  ////    wifi_fpm_do_sleep(FPM_SLEEP_MAX_TIME);
-//  ////    delay(500);
-//  //
-//  //  //      WiFi.set_sleep_level(MAX_SLEEP_T) (SDK3)
-//  //  //     WiFi.set_listen_interval          (SDK3)
-//  //  //    WiFi.set_sleep_type               (all SDKs)
-//  //  Serial.print(F("Internal set host name1 "));
-//  //  Serial.println(hostname);
-//  //  WiFi.hostname(hostname);
-//  //  Serial.print(F("Internalset host name2 "));
-//  //  Serial.println(WiFi.hostname());
-//  // // delay(500);
-//  // // WiFi.mode(WIFI_STA);
-//  // // delay(500);
-//  //  bool result = WiFi.begin(ssid, password);
-//  //  delay(200);
-//  //  Serial.println(result);
-//  //  N = 0;
-//  //   while (WiFi.status() !=WL_CONNECTED && N++ < 50) {
-//  //    delay(100); Serial.print('Y');
-//  //  }
-//  //
-//  //  return result;
-//}
 
 // Mode AP
 
@@ -790,7 +718,6 @@ void HTTP_HandleRequests() {
   if (Server.method() == HTTP_POST && Server.args() > 0 && Server.argName(0) == "refresh") {
     // debug track
     Serial.print(F("WEB: Query refresh ("));
-
     Serial.print(Server.arg(Server.args() - 1).length());
     Serial.print(F(") "));
     Serial.println(Server.arg(Server.args() - 1)); // try to get 'plain'
@@ -1102,6 +1029,7 @@ void TinyWeb::setWiFiMode(TW_WiFiMode_t mode, const char *ssid, const char *pass
   WiFiModeChanged = true;
   switch (mode) {
     case twm_WIFI_OFF:
+      WiFi.persistent(true);
       MDNS.end();
       WiFi.mode(WIFI_OFF);
       delay(10);
@@ -1116,7 +1044,33 @@ void TinyWeb::setWiFiMode(TW_WiFiMode_t mode, const char *ssid, const char *pass
       if (ssid != NULL) WiFi.begin(ssid, password);
       break;
     case twm_WIFI_AP:
-      WiFi.mode(WIFI_AP);
+      MDNS.end();
+//      WiFi.softAP("xxxxxxxxx");  // memorise hostname in flash
+//      WiFi.hostname(_hostname);
+//      WiFi.mode(WIFI_OFF);
+//      //
+//      Serial.println("Captive ON --> config soft AP config");
+//      IPAddress local_IP(169, 254, 169, 254);
+//      IPAddress gateway(169, 254, 169, 254);
+//      IPAddress subnet(255, 255, 255, 0);
+//      bool result = WiFi.softAPConfig(local_IP, gateway, subnet);
+//      Serial.print("AP config : ");
+//      Serial.println(result);
+      //
+      //  // activavation du captive DNS
+      //  captiveDNSStart();
+      //
+      //Serial.println("Captive ON --> Start SOFT AP");
+      //  String
+      //  result = WiFi.softAP(_hostname.c_str(), password);
+      //WiFi.persistent(false);
+      Serial.println("TW: Start SOFT AP");
+      WiFi.softAP(_hostname);
+      Serial.print("AP IP : ");
+      Serial.println(WiFi.softAPIP());
+      //
+
+
       break;
       //    case TWS_WIFI_SETUP_STATION:
       //      WiFi.mode(WIFI_AP);
